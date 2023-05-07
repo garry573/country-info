@@ -1,0 +1,56 @@
+// HTML:
+// <input type="text" id="countryInput" placeholder="Enter a country name">
+// <button id="searchBtn">Search</button>
+// <div id="countryInfo"></div>
+
+// JavaScript:
+const countryInput = document.getElementById('countryInput');
+const searchBtn = document.getElementById('searchBtn');
+const countryInfo = document.getElementById('countryInfo');
+
+searchBtn.addEventListener('click', () => {
+  const countryName = countryInput.value;
+  if (countryName.trim() === '') {
+    return; // Ignore empty input
+  }
+  fetchCountryInfo(countryName);
+});
+
+function fetchCountryInfo(countryName) {
+  fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 404) {
+        displayError('Country not found');
+      } else {
+        const country = data[0];
+        const info = {
+          Name: country.name.common,
+          Capital: country.capital,
+          Population: country.population,
+          Region: country.region,
+          Subregion: country.subregion,
+          Language: Object.values(country.languages).join(', '),
+          Currency: Object.values(country.currencies).join(', ')
+        };
+        displayCountryInfo(info);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      displayError('An error occurred while fetching data');
+    });
+}
+
+function displayCountryInfo(info) {
+  let html = '<ul>';
+  for (const [key, value] of Object.entries(info)) {
+    html += `<li><strong>${key}:</strong> ${value}</li>`;
+  }
+  html += '</ul>';
+  countryInfo.innerHTML = html;
+}
+
+function displayError(message) {
+  countryInfo.innerHTML = `<p class="error">${message}</p>`;
+}
